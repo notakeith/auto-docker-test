@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    container_name: your-container-name
+    restart: always
+    volumes:
+      - .:/app  # Монтируем текущую директорию в /app внутри контейнера
+    environment:
+      - POLL_INTERVAL=300  # Интервал проверки в секундах
