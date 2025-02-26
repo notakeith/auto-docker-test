@@ -3,6 +3,7 @@ import os
 import requests
 import time
 from datetime import datetime
+import docker
 
 # Настройки
 REPO_DIR = "/app"
@@ -24,10 +25,38 @@ def get_local_commit():
     result = subprocess.run(["git", "rev-parse", "HEAD"], cwd=REPO_DIR, capture_output=True, text=True)
     return result.stdout.strip()
 
+# Функция для перезапуска контейнера
+def restart_container():
+    client = docker.from_env()
+    try:
+        # Останавливаем и удаляем старый контейнер
+        container = client.containers.get("your-container-name")
+        container.stop()
+        container.remove()
+    except docker.errors.NotFound:
+        print("Контейнер не найден.")
+
+    # Собираем новый образ
+    client.images.build(path=REPO_DIR, tag="your-docker-image-name")
+
+    # Запускаем новый контейнер
+    client.containers.run(
+        "your-docker-image-name",
+        name="your-container-name",
+        detach=True,
+        restart_policy={"Name": "always"}
+    )
+
 # Основная логика
 def main():
     while True:
         print(f"[{datetime.now()}] Проверка обновлений...")
+
+        # Удаляем конфликтующие файлы
+        conflict_files = ["Dockerfile", "docker-compose.yml", "poll_github.py", "requirements.txt"]
+        for file in conflict_files:
+            if os.path.exists(file):
+                os.remove(file)
 
         # Получаем последний коммит из GitHub
         latest_commit = get_latest_commit()
@@ -45,9 +74,9 @@ def main():
             # Обновляем репозиторий
             subprocess.run(["git", "pull"], cwd=REPO_DIR)
 
-            # Перезапускаем контейнер (используем docker-compose)
+            # Перезапускаем контейнер
             print("Перезапуск контейнера...")
-            subprocess.run(["docker-compose", "up", "-d", "--build"])
+            restart_container()
 
             print("Обновление завершено.")
         else:
