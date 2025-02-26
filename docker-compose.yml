@@ -2,9 +2,11 @@ version: '3.8'
 services:
   app:
     build: .
-    container_name: your-container-name
+    image: your-image-name:latest  # Имя образа и тег
+    container_name: your-container-name  # Имя контейнера
     restart: always
     volumes:
-      - .:/app  # Монтируем текущую директорию в /app внутри контейнера
+      - .:/app
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - POLL_INTERVAL=300  # Интервал проверки в секундах
+      - POLL_INTERVAL=300

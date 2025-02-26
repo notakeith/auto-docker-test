@@ -7,8 +7,10 @@ import docker
 
 # Настройки
 REPO_DIR = "/app"
-GITHUB_REPO = "https://api.github.com/repos/notakeith/auto-docker-test/commits"
+GITHUB_REPO = "https://api.github.com/repos/ваш-username/ваш-репозиторий/commits"
 POLL_INTERVAL = 300  # Интервал проверки в секундах (например, 300 = 5 минут)
+DOCKER_IMAGE_NAME = "my-app"  # Имя образа
+CONTAINER_NAME = "my-app-container"  # Имя контейнера
 
 # Функция для получения последнего коммита из GitHub
 def get_latest_commit():
@@ -30,19 +32,19 @@ def restart_container():
     client = docker.from_env()
     try:
         # Останавливаем и удаляем старый контейнер
-        container = client.containers.get("your-container-name")
+        container = client.containers.get(CONTAINER_NAME)
         container.stop()
         container.remove()
     except docker.errors.NotFound:
         print("Контейнер не найден.")
 
     # Собираем новый образ
-    client.images.build(path=REPO_DIR, tag="your-docker-image-name")
+    client.images.build(path=REPO_DIR, tag=DOCKER_IMAGE_NAME)
 
     # Запускаем новый контейнер
     client.containers.run(
-        "your-docker-image-name",
-        name="your-container-name",
+        DOCKER_IMAGE_NAME,
+        name=CONTAINER_NAME,
         detach=True,
         restart_policy={"Name": "always"}
     )
